@@ -1,6 +1,6 @@
 # Change Log
 
-## [Unreleased]
+## [0.10.0.1] - 2018-06-27
 
 ### Removed
 - Pcs-0.10 removes support for CMAN, Corosync 1.x, Corosync 2.x and Pacemaker
