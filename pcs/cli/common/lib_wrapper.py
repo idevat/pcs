@@ -230,7 +230,7 @@ def load_module(env, middleware_factory, name):
             env,
             middleware.build(middleware_factory.cib),
             {
-                "set": constraint_colocation.create_with_set,
+                "create_with_set": constraint_colocation.create_with_set,
                 "show": constraint_colocation.show,
             },
         )
@@ -240,7 +240,7 @@ def load_module(env, middleware_factory, name):
             env,
             middleware.build(middleware_factory.cib),
             {
-                "set": constraint_order.create_with_set,
+                "create_with_set": constraint_order.create_with_set,
                 "show": constraint_order.show,
             },
         )
@@ -250,9 +250,9 @@ def load_module(env, middleware_factory, name):
             env,
             middleware.build(middleware_factory.cib),
             {
-                "set": constraint_ticket.create_with_set,
+                "create_with_set": constraint_ticket.create_with_set,
                 "show": constraint_ticket.show,
-                "add": constraint_ticket.create,
+                "create": constraint_ticket.create,
                 "remove": constraint_ticket.remove,
             },
         )
