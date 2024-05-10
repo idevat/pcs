@@ -339,7 +339,6 @@ if test "x$tests_only" != "xyes"; then
 	fi
 	PCS_CHECK_PYMOD([cryptography])
 	PCS_CHECK_PYMOD([lxml])
-	PCS_CHECK_PYMOD([pycurl])
 	PCS_CHECK_PYMOD([pyparsing])
 
 	# those are kind of problematic.
@@ -352,6 +351,7 @@ if test "x$tests_only" != "xyes"; then
 	if test "x$bundle_module" = "xyes" && test "x$cache_only" = "xyes"; then
 		PCS_CHECK_PYMOD([setuptools-scm])
 	fi
+	PCS_CHECK_PYMOD([pycurl], [], [yes])
 
 	# special case, because we need to download from github
 	AC_PIP_MODULE([pyagentx])
