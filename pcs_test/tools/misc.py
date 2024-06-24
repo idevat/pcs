@@ -19,6 +19,11 @@ from pcs_test import TEST_ROOT
 from pcs_test import settings as tests_settings
 from pcs_test.tools.custom_mock import MockLibraryReportProcessor
 
+try:
+    from pcs.daemon.app import webui
+except ImportError:
+    webui = None
+
 runner = CommandRunner(
     mock.MagicMock(logging.Logger), MockLibraryReportProcessor(), os.environ
 )
@@ -290,6 +295,10 @@ def skip_unless_booth_resource_agent_installed():
         "test requires resource agent ocf:pacemaker:booth-site"
         " which is not installed",
     )
+
+
+def skip_unless_webui_installed():
+    return skipUnless(webui, "test requires webui which is not installed")
 
 
 def create_patcher(target_prefix_or_module):
