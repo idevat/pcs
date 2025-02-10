@@ -64,7 +64,7 @@ During the installation, all required rubygems are automatically downloaded and
 compiled.
 
 To install pcs and pcsd run the following in terminal:
-```shell
+```sh
 ./autogen.sh
 ./configure
 # alternatively './configure --enable-local-build' can be used to also download
@@ -74,12 +74,12 @@ make install
 ```
 
 If you are using GNU/Linux with systemd, it is now time to:
-```shell
+```sh
 systemctl daemon-reload
 ```
 
 Start pcsd and make it start on boot:
-```shell
+```sh
 systemctl start pcsd
 systemctl enable pcsd
 ```
@@ -98,7 +98,7 @@ packages.
 * **Authenticate cluster nodes**
 
   Set the same password for the `hacluster` user on all nodes.
-  ```shell
+  ```sh
   passwd hacluster
   ```
 
@@ -106,7 +106,7 @@ packages.
   (replacing node1, node2, node3 with a list of nodes in your future cluster).
   Specify all your cluster nodes in the command. Make sure pcsd is running on
   all nodes.
-  ```shell
+  ```sh
   pcs host auth node1 node2 node3 -u hacluster
   ```
 
@@ -116,7 +116,7 @@ packages.
   cluster\_name with a name of your cluster and node1, node2, node3 with a list
   of nodes in the cluster). `--start` and `--enable` will start your cluster
   and configure the nodes to start the cluster on boot respectively.
-  ```shell
+  ```sh
   pcs cluster setup cluster_name node1 node2 node3 --start --enable
   ```
 
@@ -124,18 +124,18 @@ packages.
 
    After a few moments the cluster should startup and you can get the status of
    the cluster.
-   ```shell
+   ```sh
    pcs status
    ```
 
 * **Add cluster resources**
 
    After this you can add stonith agents and resources:
-   ```shell
+   ```sh
    pcs stonith create --help
    ```
    and
-   ```shell
+   ```sh
    pcs resource create --help
    ```
 
