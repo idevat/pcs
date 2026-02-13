@@ -15,6 +15,7 @@ from pcs.common.tools import Version
 from pcs.common.types import StringIterable
 from pcs.lib.booth.env import BoothEnv
 from pcs.lib.communication import qdevice
+from pcs.lib.communication.api_v2_client import ApiV2Client
 from pcs.lib.communication.corosync import (
     CheckCorosyncOffline,
     DistributeCorosyncConf,
@@ -117,6 +118,7 @@ class LibraryEnvironment:
         self.__loaded_booth_env: Optional[BoothEnv] = None
         self.__loaded_dr_env: Optional[DrEnv] = None
         self.__service_manager: Optional[ServiceManagerInterface] = None
+        self.__api_v2_client: Optional[ApiV2Client] = None
 
     @property
     def logger(self) -> Logger:
@@ -537,3 +539,14 @@ class LibraryEnvironment:
     @property
     def service_manager(self) -> ServiceManagerInterface:
         return self._get_service_manager()
+
+    @property
+    def api_v2_client(self) -> ApiV2Client:
+        if self.__api_v2_client is None:
+            self.__api_v2_client = ApiV2Client(
+                self.logger,
+                self.user_login,
+                self.user_groups,
+                self._request_timeout,
+            )
+        return self.__api_v2_client

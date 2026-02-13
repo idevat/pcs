@@ -366,6 +366,7 @@ EXTRA_DIST		= \
 			  lib/commands/stonith_agent.py \
 			  lib/commands/stonith.py \
 			  lib/commands/tag.py \
+			  lib/communication/api_v2_client.py \
 			  lib/communication/booth.py \
 			  lib/communication/cluster.py \
 			  lib/communication/corosync.py \
