@@ -350,6 +350,7 @@ EXTRA_DIST		= \
 			  lib/commands/dr.py \
 			  lib/commands/fencing_topology.py \
 			  lib/commands/__init__.py \
+			  lib/commands/dispatch_in_cluster.py \
 			  lib/commands/manage_clusters.py \
 			  lib/commands/node.py \
 			  lib/commands/pcs_cfgsync.py \

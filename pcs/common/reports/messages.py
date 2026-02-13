@@ -5628,6 +5628,47 @@ class ClusterEnableSuccess(ReportItemMessage):
 
 
 @dataclass(frozen=True)
+class ClusterNotImportedForManagement(ReportItemMessage):
+    """
+    The requested cluster is not imported for management (not in pcs_settings.conf)
+    """
+
+    cluster_name: str
+    _code = codes.CLUSTER_NOT_IMPORTED_FOR_MANAGEMENT
+
+    @property
+    def message(self) -> str:
+        return f"Cluster '{self.cluster_name}' is not imported for management"
+
+
+@dataclass(frozen=True)
+class ImportedClusterHasNoNodes(ReportItemMessage):
+    """
+    The cluster is imported for management but has no nodes configured
+    """
+
+    cluster_name: str
+    _code = codes.IMPORTED_CLUSTER_HAS_NO_NODES
+
+    @property
+    def message(self) -> str:
+        return f"Imported cluster '{self.cluster_name}' has no nodes configured"
+
+
+@dataclass(frozen=True)
+class PcsSettingsConfDoesNotExist(ReportItemMessage):
+    """
+    pcs_settings.conf does not exist
+    """
+
+    _code = codes.PCS_SETTINGS_CONF_DOES_NOT_EXIST
+
+    @property
+    def message(self) -> str:
+        return "pcs_settings.conf does not exist"
+
+
+@dataclass(frozen=True)
 class ClusterStartStarted(ReportItemMessage):
     host_name_list: List[str]
     _code = codes.CLUSTER_START_STARTED

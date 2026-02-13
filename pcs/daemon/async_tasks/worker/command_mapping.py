@@ -11,6 +11,7 @@ from pcs.lib.commands import (  # services,
     cluster,
     cluster_property,
     constraint,
+    dispatch_in_cluster,
     fencing_topology,
     manage_clusters,
     node,
@@ -269,6 +270,13 @@ COMMAND_MAP: Mapping[str, _Cmd] = {
     "node.standby_unstandby_list": _Cmd(
         cmd=node.standby_unstandby_list,
         required_permission=p.WRITE,
+    ),
+    # UNRESTRICTED is sufficient here — the dispatcher only forwards the command
+    # to a target node, which enforces its own permissions for the actual
+    # command.
+    "dispatch_in_cluster.dispatch_to_nodes": _Cmd(
+        cmd=dispatch_in_cluster.dispatch_to_nodes,
+        required_permission=p.UNRESTRICTED,
     ),
     "pcs_cfgsync.get_configs": _Cmd(
         cmd=pcs_cfgsync.get_configs,
