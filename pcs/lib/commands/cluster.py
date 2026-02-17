@@ -1,6 +1,7 @@
 # pylint: disable=too-many-lines
 import math
 import os.path
+import sys
 import time
 from typing import Any, Mapping, Optional, Sequence, Tuple, cast
 
@@ -2420,4 +2421,42 @@ def rename(
     run_and_raise(node_communicator, com_cmd)
 
     corosync_conf.set_cluster_name(new_name)
+    env.push_corosync_conf(corosync_conf, skip_offline)
+
+
+def rename_nodes(
+    env: LibraryEnvironment,
+    old_name: str,
+    new_name: str,
+    force_flags: reports.types.ForceFlags = (),
+) -> None:
+    """
+    Rename a cluster node in corosync.conf
+
+    old_name -- current node name
+    new_name -- new node name
+    """
+    # POC: Minimal implementation - no validation
+
+    _ensure_live_env(env)
+
+    corosync_conf = env.get_corosync_conf()
+    skip_offline = report_codes.SKIP_OFFLINE_NODES in force_flags
+
+    # Rename node and get warnings about matching ring addresses
+    rename_map = {old_name: new_name}
+    addr_warnings = corosync_conf.rename_nodes(rename_map)
+
+    # POC: Just print warnings to stderr for now (proper report messages
+    # would need to be added in common/reports/messages.py and codes.py)
+
+    for current_name, future_name, matching_addrs in addr_warnings:
+        print(
+            f"Warning: Node '{current_name}' has ring address(es) matching its "
+            f"name ({', '.join(matching_addrs)}). After renaming to "
+            f"'{future_name}', you may need to update these addresses using "
+            f"'pcs cluster link' commands.",
+            file=sys.stderr,
+        )
+
     env.push_corosync_conf(corosync_conf, skip_offline)

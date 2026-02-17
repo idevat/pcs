@@ -251,6 +251,38 @@ class ConfigFacade(FacadeInterface):
         self.__remove_empty_sections(self.config)
         self.__update_two_node()
 
+    def rename_nodes(
+        self, rename_map: Mapping[str, str]
+    ) -> list[tuple[str, str, list[str]]]:
+        """
+        Rename nodes in the config
+
+        rename_map -- dict mapping old node names to new node names
+        Returns list of tuples (old_name, new_name, matching_ring_addrs) for
+        nodes where a ring address matches the old node name
+        """
+        self._need_stopped_cluster = True
+        warnings: list[tuple[str, str, list[str]]] = []
+
+        for nodelist_section in self.config.get_sections("nodelist"):
+            for node_section in nodelist_section.get_sections("node"):
+                node_data = self._get_node_data(node_section)
+                old_name = node_data.get("name")
+                if old_name in rename_map:
+                    new_name = rename_map[old_name]
+                    node_section.set_attribute("name", new_name)
+
+                    # Check if any ring address matches the old node name
+                    matching_addrs = []
+                    for i in range(constants.LINKS_MAX):
+                        addr = node_data.get(f"ring{i}_addr")
+                        if addr == old_name:
+                            matching_addrs.append(f"ring{i}_addr")
+                    if matching_addrs:
+                        warnings.append((old_name, new_name, matching_addrs))
+
+        return warnings
+
     def create_link_list(self, link_list: Sequence[Mapping[str, str]]) -> None:
         """
         Add a link list to a config without one

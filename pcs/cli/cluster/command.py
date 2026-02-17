@@ -332,3 +332,27 @@ def cluster_rename(lib: Any, argv: Argv, modifiers: InputModifiers) -> None:
         force_flags.append(reports.codes.SKIP_OFFLINE_NODES)
 
     lib.cluster.rename(argv[0], force_flags)
+
+
+def node_rename_corosync(
+    lib: Any, argv: Argv, modifiers: InputModifiers
+) -> None:
+    """
+    Options:
+      * --skip-offline - skip offline nodes
+
+    Usage: pcs cluster node rename-corosync <old_name> <new_name>
+    """
+    modifiers.ensure_only_supported("--skip-offline")
+    if len(argv) != 2:
+        raise CmdLineInputError(
+            "Usage: pcs cluster node rename-corosync <old_name> <new_name>"
+        )
+
+    old_name, new_name = argv
+
+    force_flags = []
+    if modifiers.get("--skip-offline"):
+        force_flags.append(reports.codes.SKIP_OFFLINE_NODES)
+
+    lib.cluster.rename_nodes(old_name, new_name, force_flags)
