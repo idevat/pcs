@@ -15,6 +15,8 @@ step causes runtime errors that are not caught by type checks or tests.
 ```
 User input ("pcs cluster node clear ...")
   │
+  ├─ 0. Entry point     pcs/app.py                      → parses options, sets up context
+  │
   ├─ 1. Routing         pcs/cli/routing/cluster.py      → selects handler
   │
   ├─ 2. CLI handler     pcs/cli/cluster/command.py      → parses args, calls lib
@@ -31,6 +33,36 @@ don't affect the runtime call chain:
   (enables APIv2 execution)
 - **Documentation** — help text and man page
 - **Capability registration** — `pcsd/capabilities.xml.in`
+
+### Entry point
+
+Source: `pcs/app.py`
+
+`app.py:main()` is the boundary between raw CLI input and the structured
+pipeline. Its job is to turn `sys.argv` into the `(lib, argv, modifiers)` triple
+that every handler receives — so that handlers never deal with raw option
+parsing or environment setup.
+
+The key steps:
+
+1. **Separates options from arguments** — global flags (`-f`, `--force`,
+   `--debug`, `--wait`, etc.) are parsed out via `getopt.gnu_getopt()`. What
+   remains is the subcommand path and its positional arguments — this becomes
+   the `argv` that handlers see.
+2. **Handles exit-early options** — `--help`, `--version`, and `--fullhelp`
+   produce output and exit before any routing happens.
+3. **Builds the handler context** — the parsed options become an
+   `InputModifiers` object (see [below](#inputmodifiers)) that handlers use for
+   flag validation and access. A `Library` wrapper is created to give handlers
+   a uniform interface to library commands (see
+   [lib_wrapper](#lib_wrapper) below). Together with the remaining `argv`,
+   these form the `(lib, argv, modifiers)` triple passed into routing.
+
+Errors raised during command execution are caught at this level:
+
+- **`CmdLineInputError`** — translated to usage text on stderr + exit code 1.
+- **`LibraryError`** — translated to error messages on stderr via
+  `process_library_reports()` + exit code 1.
 
 ### Routing
 
@@ -60,6 +92,42 @@ The handler function receives `(lib, argv, modifiers)` and:
 1. Validates allowed flags: `modifiers.ensure_only_supported(...)`
 2. Validates argument count (raises `CmdLineInputError()` on mismatch)
 3. Calls the library command via `lib.<area>.<command>(...)`
+
+Handlers return `None`. The library command reports progress and errors through
+the report processor automatically — the handler typically has no involvement.
+Some handlers also print data returned by the library call (e.g. config/status
+output). Argument and usage errors are signaled by raising `CmdLineInputError`;
+`LibraryError` from library calls propagates up. Both are caught in `app.py`
+(see [Entry point](#entry-point)).
+
+#### InputModifiers
+
+Source: `pcs/cli/common/parse_args.py`
+
+`InputModifiers` wraps the parsed CLI options and provides validation and access
+methods used by CLI handlers. It is created from the global options dict in
+`app.py` and passed to every handler as the `modifiers` parameter.
+
+Key methods:
+
+- `ensure_only_supported(*options)` — raises `CmdLineInputError` if the user
+  passed any option not in the supported set (plus `--debug`, which is always
+  allowed). Every handler should call this first.
+- `get(option)` — returns the option value. For boolean flags (e.g. `--force`),
+  returns `True`/`False`. For value flags (e.g. `--wait`), returns the string
+  value or `None` if not specified.
+- `is_specified(option)` — returns whether the user explicitly passed the
+  option on the command line.
+- `ensure_not_mutually_exclusive(*options)` — raises `CmdLineInputError` if
+  more than one of the listed options was specified.
+- `ensure_not_incompatible(checked, incompatible)` — raises `CmdLineInputError`
+  if the user specified both the checked option and any of the incompatible ones.
+  Unlike `ensure_not_mutually_exclusive` (which is symmetric), this is
+  directional — e.g. `ensure_not_incompatible("--simulate", {"-f", "--wait"})`
+  rejects `--simulate` combined with `-f` or `--wait`, but `-f` with `--wait`
+  alone is fine.
+- `get_subset(*options, **custom)` — creates a new `InputModifiers` containing
+  only the specified options. Used when delegating to sub-handlers.
 
 ### lib_wrapper
 
