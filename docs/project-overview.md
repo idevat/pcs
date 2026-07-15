@@ -30,7 +30,7 @@ costly, so we're gradually migrating to Python-only.
 **Current state:**
 - Main codebase is Python
 - Legacy Ruby daemon still runs alongside the Tornado daemon (see
-  [architecture_daemon.md](architecture_daemon.md))
+  [architecture/daemon.md](architecture/daemon.md))
 - Ruby code is being phased out, not expanded
 
 **Ruby code as a knowledge source:** While Ruby code should not be used as a
@@ -44,7 +44,7 @@ implements them.
 ### APIv2 migration
 
 APIv2 is replacing the older synchronous API layers. See
-[architecture_daemon.md](architecture_daemon.md) for details on API layers and
+[architecture/daemon.md](architecture/daemon.md) for details on API layers and
 the APIv2 architecture.
 
 **Why:**

@@ -5,7 +5,7 @@ Source: `pcs/cli/`
 The CLI layer handles command-line parsing, argument validation, and user
 interaction. It translates user input into library command calls and presents
 results back to the user. The CLI never contains business logic — it delegates
-to the [library layer](architecture_library.md).
+to the [library layer](library.md).
 
 ## Command pipeline
 
@@ -81,7 +81,7 @@ the library function lives in `pcs/lib/commands/cib.py`.
 
 New library commands must be registered in `COMMAND_MAP`
 (`pcs/daemon/async_tasks/worker/command_mapping.py`) to be available via APIv2.
-See [architecture_daemon.md — Command mapping and permissions](architecture_daemon.md#command-mapping-and-permissions)
+See [daemon.md — Command mapping and permissions](daemon.md#command-mapping-and-permissions)
 for details.
 
 ### Documentation
@@ -129,7 +129,7 @@ supports the `-f` flag without explicit handling in the command.
 
 The corosync.conf middleware works the same way for `--corosync_conf`.
 
-See [architecture_library.md — Live-only vs. file-compatible commands](architecture_library.md#live-only-vs-file-compatible-commands)
+See [library.md — Live-only vs. file-compatible commands](library.md#live-only-vs-file-compatible-commands)
 for how the library layer interacts with this mechanism.
 
 ## Force flags pattern (CLI side)
@@ -152,7 +152,7 @@ def my_command(lib: Any, argv: Argv, modifiers: InputModifiers) -> None:
 The library command declares `force_flags` as a parameter (typically with
 default `()`) and uses it to decide whether to emit warnings (force applied)
 or forceable errors (force not applied). See
-[architecture_library.md — Forceable errors](architecture_library.md#forceable-errors-force-override-pattern)
+[reports.md — Forceable errors](reports.md#forceable-errors-force-override-pattern)
 for the library side of this pattern.
 
 ## Registration checklist (new command)
@@ -165,7 +165,7 @@ When adding a new CLI command, all of the following must be updated:
 3. **lib_wrapper** (`pcs/cli/common/lib_wrapper.py`) — add binding entry
    (area corresponds to **library** module, not CLI routing area)
 4. **Library command** (`pcs/lib/commands/<area>.py`) — implement business
-   logic (see [architecture_library.md](architecture_library.md))
+   logic (see [library.md](library.md))
 5. **Daemon command mapping**
    (`pcs/daemon/async_tasks/worker/command_mapping.py`) — add `COMMAND_MAP`
    entry with permission level (alphabetical order)

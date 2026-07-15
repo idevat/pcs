@@ -12,15 +12,21 @@ structure, design intent, and implementation choices.
    history, and evolution
 4. [development-principles.md](development-principles.md) — coding philosophy,
    conventions, identifying legacy patterns
-5. [architecture.md](architecture.md) — project structure, components overview,
-   build system, quality checks
-   - [architecture_library.md](architecture_library.md) — library commands,
-     LibraryEnvironment, CIB, reports, communication
-   - [architecture_daemon.md](architecture_daemon.md) — daemon, API layers,
+5. [architecture/overview.md](architecture/overview.md) — project structure,
+   components overview, build system, quality checks
+   - [architecture/library.md](architecture/library.md) — library commands,
+     LibraryEnvironment, CorosyncConfigFacade, communication
+   - [architecture/cib.md](architecture/cib.md) — CIB-modifying commands,
+     section access, CIB domain layer
+   - [architecture/reports.md](architecture/reports.md) — reporting system,
+     error signaling, force override pattern
+   - [architecture/daemon.md](architecture/daemon.md) — daemon, API layers,
      APIv2, authentication
-   - [architecture_cli.md](architecture_cli.md) — CLI pipeline, routing,
+   - [architecture/cli.md](architecture/cli.md) — CLI pipeline, routing,
      middleware
 6. [testing.md](testing.md) — test tiers, frameworks, patterns, and strategies
+   - [testing_library_framework.md](testing_library_framework.md) — library
+     command test framework (`get_env_tools`)
 
 ## Documentation philosophy
 

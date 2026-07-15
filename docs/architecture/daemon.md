@@ -204,6 +204,6 @@ Otherwise, it runs as the authenticated user.
 - **NodeCommunicatorFactory** — creates `CIB_user`/`CIB_user_groups` cookies
   for legacy remote requests
 
-See [architecture_library.md — Service propagation pattern](architecture_library.md#service-propagation-pattern)
+See [library.md — Service propagation pattern](library.md#service-propagation-pattern)
 for details on how `LibraryEnvironment` distributes identity to communication
 layers.

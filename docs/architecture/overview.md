@@ -27,8 +27,8 @@ capabilities:
      - Still runs alongside Tornado for endpoints not yet migrated
      - Being phased out
 
-See [architecture_daemon.md](architecture_daemon.md) for daemon internals, API
-layers, APIv2 architecture, and authentication.
+See [daemon.md](daemon.md) for daemon internals, API layers, APIv2
+architecture, and authentication.
 
 ### Optional components
 
@@ -62,10 +62,9 @@ management and async task processing over HTTP.
             pcs/lib/env.py      (command dependencies container)
 ```
 
-See [architecture_library.md](architecture_library.md) for how the library
-layer works: commands, LibraryEnvironment, CIB access, reports, and
-communication. See [architecture_cli.md](architecture_cli.md) for the CLI
-pipeline, routing, and middleware.
+See [library.md](library.md) for how the library layer works: commands,
+LibraryEnvironment, CIB access, reports, and communication. See
+[cli.md](cli.md) for the CLI pipeline, routing, and middleware.
 
 ## Key directories
 
@@ -171,9 +170,11 @@ This means:
 
 Each major component has a dedicated document with in-depth coverage:
 
-- [architecture_library.md](architecture_library.md) — library commands,
-  LibraryEnvironment, CIB access, reports, network communication
-- [architecture_daemon.md](architecture_daemon.md) — daemon architecture, API
-  layers (v0/v1/v2), APIv2 in depth, authentication, command permissions
-- [architecture_cli.md](architecture_cli.md) — CLI pipeline, command routing,
-  middleware, force flags
+- [library.md](library.md) — library commands, LibraryEnvironment,
+  CorosyncConfigFacade, network communication
+- [cib.md](cib.md) — CIB-modifying commands, section access, CIB domain layer
+- [reports.md](reports.md) — reporting system, error signaling, force override
+  pattern
+- [daemon.md](daemon.md) — daemon architecture, API layers (v0/v1/v2), APIv2
+  in depth, authentication, command permissions
+- [cli.md](cli.md) — CLI pipeline, command routing, middleware, force flags
