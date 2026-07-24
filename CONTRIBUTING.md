@@ -40,7 +40,7 @@ Pull request must comply with the following policies:
 
 ### Run pcs and pcsd
 * To run pcs, type `pcs/pcs`.
-* To run pcsd, type `sripts/pcsd.sh`.
+* To run pcsd, type `scripts/pcsd.sh`.
 
 ### Pcs test suite
 * To run all the tests, type `make check`.
