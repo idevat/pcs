@@ -148,9 +148,10 @@ return `ReportItemList` for the caller to process.
 - Has or will likely have multiple callers
 - Can stand alone without `LibraryEnvironment` or reporting context
 
-Good examples: `fencing_topology.add_level()` (validation + element creation),
-`node.get_node_names()` (reusable query),
-`constraint/location.create_plain_with_rule()` (complex element construction).
+Good examples: `constraint/location.create_plain_with_rule()` (complex element
+construction with validation split), `alert.validate_create_alert()` /
+`alert.create_alert()` (matched validate / create pair),
+`node.get_node_names()` (reusable query).
 
 **Keep in `pcs/lib/commands/`** when code:
 - Is simple XML manipulation (XPath query + attribute set) tightly coupled to
@@ -162,10 +163,183 @@ Good examples: `fencing_topology.add_level()` (validation + element creation),
 A simple XPath query in a command function is acceptable — not every line that
 "knows about CIB structure" needs extraction.
 
+### Validation and modification split
+
+Each domain operation is split into two functions with closely aligned
+interfaces:
+
+- **`validate_*()`** — checks inputs, returns `ReportItemList`. Never modifies
+  the CIB. Never raises on validation failure — it collects all problems and
+  returns them so the caller can decide what to do.
+- **`create_*()`** / **`update_*()`** — assumes validation has passed, modifies
+  the CIB, and returns the created or modified element.
+
+```python
+# In pcs/lib/cib/<domain>.py
+
+def validate_create_foo(
+    id_provider: IdProvider,
+    some_id: Optional[str],          # Optional: validator reports if missing
+    options: validate.TypeOptionMap,  # may contain ValuePair for normalization
+    parent_el: Optional[_Element],   # looked-up element (or None if not found)
+    force_flags: ...,
+) -> reports.ReportItemList:
+    ...
+
+def create_foo(
+    parent_element: _Element,        # where to attach the new element
+    id_provider: IdProvider,
+    some_id: str,                    # not Optional: validation guarantees presence
+    options: Mapping[str, str],      # plain strings (normalized values only)
+    cib_schema_version: Version,
+) -> _Element:
+    ...
+```
+
+Key differences between the two signatures:
+
+- **Optionality** — Validation accepts `Optional` types for user-provided
+  mandatory values (and reports errors if missing). Modification accepts
+  non-optional types, relying on preceding validation.
+- **Option maps** — Validation accepts `validate.TypeOptionMap` (which may
+  contain `ValuePair`s for normalization tracking). Modification accepts
+  `Mapping[str, str]` (plain normalized values, after `pairs_to_values`).
+- **Element parameters** — Validation may accept a looked-up element as
+  `Optional[_Element]` (reporting an error when `None`). Modification takes a
+  non-optional parent or section element for XML attachment.
+
+When validation produces intermediate results needed by the modification
+function (e.g. a parsed rule), use a **validator class** instead of a plain
+function:
+
+```python
+class ValidateCreateFoo:
+    def __init__(self, id_provider: IdProvider, raw_input: str, ...):
+        ...
+
+    def validate(self, force_flags: ...) -> reports.ReportItemList:
+        ...
+
+    def get_parsed_input(self) -> ParsedResult:
+        """Accessor for intermediate results computed during validation."""
+        ...
+```
+
+The caller uses the class like:
+
+```python
+validator = ValidateCreateFoo(id_provider, raw_input, ...)
+env.report_processor.report_list(validator.validate(force_flags))
+if env.report_processor.has_errors:
+    raise LibraryError()
+new_el = create_foo(section, id_provider, ..., validator.get_parsed_input())
+```
+
+The command layer is responsible for orchestrating the two calls:
+
+```python
+def my_command(env: LibraryEnvironment, ...) -> None:
+    cib = env.get_cib()
+    id_provider = IdProvider(cib)
+
+    # 1. Validate
+    env.report_processor.report_list(
+        domain.validate_create_foo(id_provider, ...)
+    )
+    if env.report_processor.has_errors:
+        raise LibraryError()
+
+    # 2. Modify CIB (only reached when validation passed)
+    domain.create_foo(section, id_provider, ...)
+
+    env.push_cib()
+```
+
+For reference implementations of this pattern:
+
+| Function              | Location                                    | Demonstrates                                              |
+|-----------------------|---------------------------------------------|-----------------------------------------------------------|
+| `set_properties`      | `pcs/lib/commands/cluster_property.py`       | Validation / modification split                           |
+| `create_alert`        | `pcs/lib/commands/alert.py`                  | Validation / modification split, `IdProvider`             |
+| `create_plain_with_rule` | `pcs/lib/commands/constraint/location.py` | Validator class with intermediate results, `IdProvider`   |
+| `create_with_set`     | `pcs/lib/commands/constraint/ticket.py`      | Multi-step validation, value normalization, `IdProvider`  |
+
+### `IdProvider`
+
+`IdProvider` (`pcs/lib/cib/tools.py`) tracks CIB element IDs and prevents
+collisions. It is essential for the validation / modification split because
+both phases need a shared view of which IDs are available.
+
+```python
+id_provider = IdProvider(cib)
+```
+
+It provides two operations:
+
+- **`book_ids(*ids)`** — verifies that the given IDs are not already used in
+  the CIB or previously booked, and reserves them. Returns a `ReportItemList`
+  with errors for any conflicts. Validators call this (typically via
+  `validate.ValueId`) when the user provides a specific ID.
+- **`allocate_id(proposed_id)`** — generates a unique ID based on the proposal
+  (appending a numeric suffix if needed), checking both the CIB and the set of
+  booked IDs to avoid conflicts. Returns the final ID string.
+
+The same `IdProvider` instance is passed to both the validation function and
+the modification function. IDs booked during validation are visible to
+`allocate_id` during modification, so auto-generated IDs never collide with
+user-specified ones:
+
+```python
+id_provider = IdProvider(cib)
+
+# Validation phase: user-specified ID "my-alert" is booked
+report_list = alert.validate_create_alert(id_provider, path, "my-alert")
+
+# Modification phase: if another element auto-generates from "my-alert",
+# allocate_id sees the booking and returns "my-alert-1" instead
+alert_el = alert.create_alert(cib, id_provider, path, "my-alert")
+```
+
+When creating multiple elements in sequence (e.g. a constraint with its
+rule, or multiple port mappings for a bundle), each `allocate_id` call sees
+previously allocated IDs, preventing collisions even before the elements are
+inserted into the CIB tree.
+
+### Value normalization
+
+Some commands normalize user-provided option values before validation (e.g.
+lowercasing `loss-policy`, capitalizing `rsc-role`). The `ValuePair` mechanism
+(`pcs/lib/validate.py`) preserves both the original and normalized forms so
+that validation checks the normalized value but error messages show what the
+user actually typed.
+
+The flow is:
+
+```python
+# 1. Normalize: wrap each value in a ValuePair(original, normalized)
+options_pairs = validate.values_to_pairs(
+    options,
+    validate.option_value_normalization({"loss-policy": str.lower}),
+)
+
+# 2. Validate using pairs — validators check .normalized, report .original
+env.report_processor.report_list(
+    domain.validate_create_foo(id_provider, ..., options_pairs, ...)
+)
+
+# 3. Extract normalized values for CIB modification
+domain.create_foo(section, id_provider, ..., validate.pairs_to_values(options_pairs))
+```
+
+This transformation happens at the command layer. Validation functions accept
+`validate.TypeOptionMap` (which may contain `ValuePair`s). Modification
+functions accept plain `Mapping[str, str]`.
+
 ### Legacy note
 
-Not all existing code follows this ideal layering — some older command
-functions contain CIB manipulation that could live in `pcs/lib/cib/` in a
-clean design. If it works and has a single caller, there is no reason to move
-it. Apply these principles when writing new code or when refactoring creates
-a genuine readability or reuse benefit.
+Not all existing code follows these patterns — some older domain functions
+combine validation and modification into a single call, and some command
+functions contain CIB manipulation that could live in `pcs/lib/cib/`. If it
+works and has a single caller, there is no reason to refactor it. Apply these
+principles when writing new code or when refactoring creates a genuine
+readability or reuse benefit.
