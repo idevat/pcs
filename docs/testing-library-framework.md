@@ -150,11 +150,11 @@ def _corosync_conf(*node_names):
             cluster_name: test
             transport: udpu
         }}
-        
+
         nodelist {{
         {nodes}
         }}
-        
+
         quorum {{
             provider: corosync_votequorum
         }}

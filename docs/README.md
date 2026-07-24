@@ -25,7 +25,7 @@ structure, design intent, and implementation choices.
    - [architecture/cli.md](architecture/cli.md) — CLI pipeline, routing,
      middleware
 6. [testing.md](testing.md) — test tiers, frameworks, patterns, and strategies
-   - [testing_library_framework.md](testing_library_framework.md) — library
+   - [testing-library-framework.md](testing-library-framework.md) — library
      command test framework (`get_env_tools`)
 
 ## Documentation philosophy

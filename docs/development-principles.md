@@ -92,7 +92,8 @@ def set_name(self, name: str) -> None:
 
 Follow existing test patterns in the codebase. See
 [CONTRIBUTING.md](../CONTRIBUTING.md) for running tests. For library command
-test framework details and strategy, see [testing.md](testing.md).
+test framework details and strategy, see
+[testing-library-framework.md](testing-library-framework.md).
 
 Note that many existing tests in the codebase are legacy — they may use
 outdated patterns (excessive constants, one test class per feature, tight

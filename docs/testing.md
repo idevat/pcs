@@ -62,7 +62,7 @@ list of make targets.
 
 Library command tests use a custom mock framework (`get_env_tools`) that
 replaces external dependencies while running the actual library command logic.
-See [testing_library_framework.md](testing_library_framework.md) for the full
+See [testing-library-framework.md](testing-library-framework.md) for the full
 guide: test structure, CIB/corosync configuration, report assertions, fixtures,
 and test strategy.
 
