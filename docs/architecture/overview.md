@@ -15,7 +15,6 @@ capabilities:
 2. **Library** (`pcs/lib/`)
    - Core business logic
    - Commands: `pcs/lib/commands/` (invoked by both CLI and daemon)
-   - Shared utilities: `pcs/common/`
 
 3. **Daemon — pcsd** (HTTP server for remote management)
    - **Tornado daemon** (Python) — `pcs/daemon/`
@@ -30,6 +29,8 @@ capabilities:
 See [daemon.md](daemon.md) for daemon internals, API layers, APIv2
 architecture, and authentication.
 
+Utilities shared by core components are placed in `pcs/common/`.
+
 ### Optional components
 
 4. **Web UI** (optional, separate project)
@@ -41,7 +42,7 @@ architecture, and authentication.
 
 5. **SNMP Agent** (`pcs/snmp/`)
    - Optional SNMP monitoring support
-   - Binary: `pcs_snmp_agent`
+   - Executable: `pcs_snmp_agent`
    - AgentX-based SNMP subagent
 
 ### How the components fit together

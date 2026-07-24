@@ -39,9 +39,7 @@ alternative is genuinely confusing — not as a default practice.
 - Write Python the Python way
 - Take advantage of Python's strengths (duck typing, comprehensions, context
   managers, etc.)
-- **Type annotations** use `typing` module forms (`Optional[X]`, `List[X]`,
-  `Dict[K, V]`) for compatibility with older Python versions we support — not
-  the newer `X | None`, `list[X]` syntax
+- Use type annotations
 
 ## Dependencies
 
@@ -58,6 +56,7 @@ Comments should add value, not noise.
 **Formal documentation comments:**
 - Required for public interfaces (e.g., library commands in `pcs/lib/commands`
   exposed via `pcs/daemon/async_tasks/worker/command_mapping.py`)
+- Optional for internal functions
 - Must add value beyond what's obvious from the function signature — don't just
   restate parameter names and types
 
@@ -71,14 +70,13 @@ Comments should add value, not noise.
 
 - Don't repeat what's obvious from the code
 - Don't document what's visible a few lines away
-- Don't write documentation comments for internal functions
 
 **Bad example:**
 ```python
 def set_name(self, name: str) -> None:
     """
     Setting name to instance of XY
-    string name -- name for XY
+    name -- name for XY
     """
 ```
 

@@ -48,7 +48,8 @@ class MyCommandTest(TestCase):
 `get_env_tools(self)` returns two objects:
 - **`env_assist`** — provides `get_env()` (creates the `LibraryEnvironment`),
   `assert_reports()`, and `assert_raise_library_error()`
-- **`config`** — fluent API for configuring mock expectations
+- **`config`** — API for configuring mock expectations (it offers a fluent
+  interface, but that is a **legacy** technique, do not use it for new tests)
 
 ## Configuring CIB
 

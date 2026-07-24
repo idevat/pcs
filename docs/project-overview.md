@@ -13,8 +13,8 @@ PCS operates in the HA cluster ecosystem:
 - **Corosync** — cluster communication layer
 - **PCS** — configuration and management interface (CLI + daemon)
 
-Users interact with PCS to configure cluster resources, constraints, and
-topology rather than editing raw XML configuration files.
+Users interact with PCS to configure cluster nodes, resources, constraints, and
+other aspects rather than editing raw XML and other configuration files.
 
 ## Evolution
 

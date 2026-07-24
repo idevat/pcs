@@ -117,6 +117,11 @@ Three files must be updated (an `AllClassesTested` meta-test enforces the test):
 3. **`pcs_test/tier0/common/reports/test_messages.py`** — add test class with
    the **same name** as the message class, inheriting `NameBuildTest`
 
+Texts produced by report messages must be client-agnostic — they must not refer
+to specific CLI syntax or options. Clients implement mechanisms which allow
+them to override text of a report message if needed, e.g. for adding CLI
+syntax.
+
 ## Forwarding remote reports
 
 When a command receives reports from a remote node (e.g. via APIv2), the

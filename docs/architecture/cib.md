@@ -7,7 +7,7 @@ Commands that modify CIB follow this pattern:
 ```python
 def my_command(env: LibraryEnvironment, ...) -> None:
     cib = env.get_cib()
-    # validate, modify cib elements
+    # validate input, consider existing CIB elements
     if env.report_processor.report_list(reports).has_errors:
         raise LibraryError()
     # perform modifications on cib
@@ -22,7 +22,6 @@ outdated patterns. Good references:
 | `element_description_set` | `pcs/lib/commands/cib.py`             | Simple CIB-modifying command              |
 | `element_description_get` | `pcs/lib/commands/cib.py`             | Simple CIB-reading command                |
 | `rename_node_cib`         | `pcs/lib/commands/cluster/node.py`    | Decomposition with `ReportItemList` helpers |
-| `get_resource_ids`        | `pcs/lib/commands/remote_node.py`     | CIB-reading command                       |
 
 ## CIB section access
 
@@ -41,11 +40,11 @@ This auto-creation is by design for commands that *write* to optional sections
 — they can call e.g. `get_fencing_topology(cib)` and append elements without
 checking existence first. But it's a trap for commands that only *read* an
 optional section: calling `get_fencing_topology(cib)` in a read-only context
-silently inserts an empty `<fencing-topology/>` into the CIB, which then gets
-pushed as a modification.
+silently inserts an empty `<fencing-topology/>` into the CIB. Read-only commands
+must not push CIB to prevent such unwanted modifications.
 
-When a command only needs to **iterate** over elements in an optional section
-(without adding/removing), use direct XPath instead:
+When a command only needs to **read** elements in an optional section
+(without adding/removing), it is simpler to use XPath instead:
 
 ```python
 # Read-only: iterate fencing levels without creating fencing-topology
@@ -53,7 +52,7 @@ for element in cib.findall(f".//{TAG_FENCING_LEVEL}"):
     ...
 
 # Read-only: check whether an optional section exists and has content
-acl_section = cib.find(".//acls")
+acl_section = cib.find(f".//{TAG_ACLS}")
 if acl_section is not None and len(acl_section):
     ...
 
@@ -86,13 +85,16 @@ attribute-based filtering. If you need XPath functions, switch to `xpath()`.
 
 lxml's `getparent()` returns `Optional[_Element]` because root elements have
 no parent. When code uses `findall()` to locate nested elements, the parent
-is guaranteed to exist structurally. Prefer `assert` over `cast` for this —
-it provides a runtime check instead of silently hiding a potential error:
+is guaranteed to exist structurally. Use `assert` over `cast` for this —
+it provides a runtime check instead of silently hiding a potential error.
+Explain in a comment that the parent is guaranteed to exist and the assert is
+there to narrow the type for the purposes of static type check (mypy):
 
 ```python
 # findall path includes the parent tag — parent is guaranteed to exist
 for child_el in cib.findall(f".//{TAG_PARENT}/child[@attr='value']"):
     parent = child_el.getparent()
+    # mypy would complain, but the parent exists: //{TAG_PARENT}/child
     assert parent is not None
 
 # Avoid: silently assumes parent exists
@@ -141,7 +143,7 @@ return `ReportItemList` for the caller to process.
 ### What belongs where
 
 **Extract to `pcs/lib/cib/`** when code:
-- Encapsulates non-trivial CIB structural knowledge (element creation with
+- Encapsulates non-trivial CIB structural knowledge (element creation and
   validation, complex queries, format-specific parsing)
 - Has or will likely have multiple callers
 - Can stand alone without `LibraryEnvironment` or reporting context

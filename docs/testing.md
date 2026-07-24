@@ -129,7 +129,7 @@ class MyCommandTest(AssertPcsMixin, TestCase):
     def test_success(self):
         self.assert_pcs_success(
             ["area", "subcommand", "arg1", "arg2"],
-            stderr_full="Expected output\n",
+            stdout_full="Expected output\n",
         )
 
     def test_error(self):

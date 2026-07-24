@@ -55,7 +55,7 @@ access infrastructure services through it:
 - `env.get_known_hosts()` — host resolution for communication
 - `env.get_node_communicator()` — HTTP communication with cluster nodes
 
-Commands should rely on `env` to access services rather than importing and
+Commands must rely on `env` to access services rather than importing and
 constructing them directly.
 
 ### Design intent
@@ -97,7 +97,7 @@ independently.
 
 ## Live-only vs. file-compatible commands
 
-Commands that require a running cluster call `ensure_live_env(env)` (from
+Commands that require a running cluster call `ensure_live_env(env)` (e.g.
 `pcs/lib/commands/cluster/utils.py`) which raises if CIB or corosync.conf
 comes from a file. Commands that only modify CIB XML (without needing cluster
 state, corosync.conf, or node communication) can work with both live and

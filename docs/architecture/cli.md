@@ -29,8 +29,6 @@ User input ("pcs cluster node clear ...")
 The following registrations are also required when adding a new command but
 don't affect the runtime call chain:
 
-- **Daemon mapping** — `pcs/daemon/async_tasks/worker/command_mapping.py`
-  (enables APIv2 execution)
 - **Documentation** — help text and man page
 - **Capability registration** — `pcsd/capabilities.xml.in`
 
@@ -156,8 +154,9 @@ Both files must be updated:
 
 ### Capability registration
 
-`pcsd/capabilities.xml.in` — daemon feature negotiation. Required for new
-commands exposed via the daemon.
+`pcsd/capabilities.xml.in` — CLI and daemon feature negotiation. Required for
+new commands, command options or functionalities exposed via CLI and the
+daemon: attributes 'in-pcs' and 'in-pcsd', respectively.
 
 ## Middleware
 
@@ -231,4 +230,5 @@ When adding a new CLI command, all of the following must be updated:
    (`pcs/daemon/async_tasks/worker/command_mapping.py`) — add `COMMAND_MAP`
    entry with permission level (alphabetical order)
 6. **Help text** (`pcs/usage.py`) and **man page** (`pcs/pcs.8.in`)
-7. **Capability** (`pcsd/capabilities.xml.in`) — daemon feature negotiation
+7. **Capability** (`pcsd/capabilities.xml.in`) — CLI and daemon feature
+   negotiation

@@ -15,7 +15,7 @@ structure, design intent, and implementation choices.
 5. [architecture/overview.md](architecture/overview.md) — project structure,
    components overview, build system, quality checks
    - [architecture/library.md](architecture/library.md) — library commands,
-     LibraryEnvironment, CorosyncConfigFacade, communication
+     LibraryEnvironment, CorosyncConfigFacade, node communication
    - [architecture/cib.md](architecture/cib.md) — CIB-modifying commands,
      section access, CIB domain layer
    - [architecture/reports.md](architecture/reports.md) — reporting system,
