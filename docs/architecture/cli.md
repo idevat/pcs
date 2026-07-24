@@ -215,6 +215,81 @@ or forceable errors (force not applied). See
 [reports.md — Forceable errors](reports.md#forceable-errors-force-override-pattern)
 for the library side of this pattern.
 
+## Overriding report messages
+
+Source: `pcs/cli/reports/messages.py`
+
+Library report messages (`pcs/common/reports/messages.py`) are intentionally
+client-agnostic — they must not reference CLI flags or pcs command syntax.
+When the CLI needs to add CLI-specific hints (e.g. "use `--force` to override"
+or "try running `pcs host auth`"), it overrides the library message text using
+the `CliReportMessageCustom` mechanism.
+
+### Writing a custom CLI message
+
+Create a subclass of `CliReportMessageCustom` in `pcs/cli/reports/messages.py`.
+The subclass needs two things:
+
+1. **`_obj` type annotation** — set to the corresponding library
+   `ReportItemMessage` subclass from `pcs.common.reports.messages`. This tells
+   the base class which dataclass to reconstruct from the DTO payload.
+2. **`message` property** — returns the CLI-tailored text. Use `self._obj` to
+   access structured fields from the library message.
+
+Registration is automatic — subclasses are discovered via
+`get_all_subclasses()` at import time. No manual map entry is needed. An
+`AssertionError` is raised if two subclasses map to the same message code.
+
+### Examples
+
+**Adding a CLI flag hint** — the library message says what happened; the CLI
+override appends what the user can do about it:
+
+```python
+class ResourceManagedNoMonitorEnabled(CliReportMessageCustom):
+    _obj: messages.ResourceManagedNoMonitorEnabled
+
+    @property
+    def message(self) -> str:
+        return (
+            f"Resource '{self._obj.resource_id}' has no enabled monitor "
+            "operations. Re-run with '--monitor' to enable them."
+        )
+```
+
+**Adding a command suggestion** — the CLI appends a pcs command to the
+library's original text via `self._obj.message`:
+
+```python
+class UseCommandClusterRename(CliReportMessageCustom):
+    _obj: messages.UseCommandClusterRename
+
+    @property
+    def message(self) -> str:
+        return self._obj.message + ", use 'pcs cluster rename'"
+```
+
+**Conditionally adding detail** — the library dataclass has a field the
+library message ignores; the CLI override uses it:
+
+```python
+class InvalidCibContent(CliReportMessageCustom):
+    _obj: messages.InvalidCibContent
+
+    @property
+    def message(self) -> str:
+        return "invalid cib:\n{report}{more_verbose}".format(
+            report=self._obj.report,
+            more_verbose=format_optional(
+                self._obj.can_be_more_verbose,
+                "\n\nUse --full for more details.",
+            ),
+        )
+```
+
+Most library messages do not need CLI overrides — only add one when the
+message should include CLI-specific syntax or actionable pcs commands.
+
 ## Registration checklist (new command)
 
 When adding a new CLI command, all of the following must be updated:

@@ -118,9 +118,10 @@ Three files must be updated (an `AllClassesTested` meta-test enforces the test):
    the **same name** as the message class, inheriting `NameBuildTest`
 
 Texts produced by report messages must be client-agnostic — they must not refer
-to specific CLI syntax or options. Clients implement mechanisms which allow
-them to override text of a report message if needed, e.g. for adding CLI
-syntax.
+to specific CLI syntax or options. The CLI can override individual message texts
+to add CLI-specific hints (flag suggestions, pcs commands). See
+[cli.md — Overriding report messages](cli.md#overriding-report-messages) for
+details.
 
 ## Forwarding remote reports
 
