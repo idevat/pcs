@@ -150,17 +150,106 @@ Key details:
 
 ### Verifying CIB changes
 
-For CIB-modifying commands, read back the temp file and verify via XPath:
+For CIB-modifying commands, use `get_assert_pcs_effect_mixin` from
+`pcs_test.tools.cib`. It provides `assert_effect`, which runs a pcs command
+and verifies the resulting CIB XML in a single step.
+
+#### Setup
+
+`get_assert_pcs_effect_mixin(get_cib_part)` is a factory that returns a mixin
+class. The `get_cib_part` argument is a callable that extracts the CIB
+section you want to verify (e.g. `<resources>`, `<constraints>`,
+`<crm_config>`):
 
 ```python
-def test_modifies_cib(self):
-    self.assert_pcs_success(["area", "subcommand", "arg1"])
+from unittest import TestCase
 
-    self.temp_cib.seek(0)
-    cib_tree = str_to_etree(self.temp_cib.read())
+from lxml import etree
 
-    self.assertEqual(len(cib_tree.xpath("//element[@attr='new']")), 1)
-    self.assertEqual(len(cib_tree.xpath("//element[@attr='old']")), 0)
+from pcs_test.tools.cib import get_assert_pcs_effect_mixin
+from pcs_test.tools.misc import (
+    get_test_resource as rc,
+    get_tmp_file,
+    write_file_to_tmpfile,
+)
+from pcs_test.tools.pcs_runner import PcsRunner
+
+
+class MyCommandTest(
+    TestCase,
+    get_assert_pcs_effect_mixin(
+        lambda cib: etree.tostring(
+            etree.parse(cib).findall(".//resources")[0]
+        )
+    ),
+):
+    def setUp(self):
+        self.temp_cib = get_tmp_file("tier1_my_test")
+        write_file_to_tmpfile(rc("cib-empty.xml"), self.temp_cib)
+        self.pcs_runner = PcsRunner(self.temp_cib.name)
+
+    def tearDown(self):
+        self.temp_cib.close()
+```
+
+The mixin inherits from `AssertPcsMixin`, so you don't need to also inherit
+it — `assert_pcs_success`, `assert_pcs_fail`, etc. are available
+automatically.
+
+#### `assert_effect` — run a command and verify the CIB
+
+The primary method. Pass a command (list of strings) and the expected XML for
+the CIB section:
+
+```python
+def test_create_resource(self):
+    self.assert_effect(
+        "resource create R1 ocf:pacemaker:Dummy".split(),
+        """
+            <resources>
+                <primitive class="ocf" id="R1"
+                    provider="pacemaker" type="Dummy">
+                    <operations>
+                        <op id="R1-monitor-interval-10s"
+                            interval="10s" name="monitor" timeout="20s"
+                        />
+                    </operations>
+                </primitive>
+            </resources>
+        """,
+    )
+```
+
+You can also check stdout or stderr alongside the CIB:
+
+```python
+def test_with_stderr(self):
+    self.assert_effect(
+        "resource ungroup MyGroup".split(),
+        expected_resources_xml,
+        stderr_full="Removing Constraint - location-MyGroup-rh7-1\n",
+    )
+```
+
+When multiple command syntaxes should produce the same result, pass a list of
+commands (list of lists). The CIB is automatically reset between alternatives.
+
+#### Verifying multiple sections
+
+When a command affects more than one CIB section (e.g. both resources and
+tags), call `assert_resources_xml_in_cib` with a custom extraction function
+for additional sections:
+
+```python
+def test_affects_resources_and_tags(self):
+    self.assert_effect(
+        "resource ungroup MyGroup".split(),
+        expected_resources_xml,
+    )
+    self.assert_resources_xml_in_cib(
+        expected_tags_xml,
+        lambda cib: etree.tostring(etree.parse(cib).findall(".//tags")[0]),
+    )
 ```
 
 ### Verifying corosync.conf changes
