@@ -33,6 +33,13 @@ be updated — it lists every `.py` file individually (not directories). Both
 file lists. See [overview.md — Makefile.am conventions](overview.md#makefileam-conventions)
 for details.
 
+### Daemon command mapping
+
+New library commands must be registered in `COMMAND_MAP`
+(`pcs/daemon/async_tasks/worker/command_mapping.py`) to be available via APIv2.
+See [daemon.md — Command mapping and permissions](daemon.md#command-mapping-and-permissions)
+for details.
+
 ## LibraryEnvironment
 
 Source: `pcs/lib/env.py`

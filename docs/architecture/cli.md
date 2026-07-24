@@ -145,13 +145,6 @@ module** (`pcs/lib/commands/<area>.py`), not the CLI routing area. A command
 routed through `pcs/cli/routing/cluster.py` may bind to `lib.cib.<command>` if
 the library function lives in `pcs/lib/commands/cib.py`.
 
-### Daemon command mapping
-
-New library commands must be registered in `COMMAND_MAP`
-(`pcs/daemon/async_tasks/worker/command_mapping.py`) to be available via APIv2.
-See [daemon.md — Command mapping and permissions](daemon.md#command-mapping-and-permissions)
-for details.
-
 ### Documentation
 
 Both files must be updated:

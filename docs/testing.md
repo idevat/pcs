@@ -228,69 +228,6 @@ effect broke. This is acceptable — the test failure message and CIB diff
 provide enough signal to locate the issue, and the reduced test count makes
 the suite easier to maintain as the command grows.
 
-### Force pattern testing
-
-*When: testing a command that supports `--force` override (forceable errors)*
-
-The force pattern requires two test cases — one without force (expects error)
-and one with force (expects warning and command proceeds). See
-[reports.md — Forceable errors](architecture/reports.md#forceable-errors-force-override-pattern)
-for how the pattern works in library code.
-
-```python
-# Without force — error
-self.env_assist.assert_raise_library_error(
-    lambda: lib.my_command(self.env_assist.get_env(), ...)
-)
-self.env_assist.assert_reports([
-    fixture.error(
-        reports.codes.SOME_ERROR,
-        force_code=reports.codes.FORCE,
-        param="value",
-    ),
-])
-
-# With force — warning, command proceeds
-self.config.env.push_cib(resources="...")
-lib.my_command(self.env_assist.get_env(), ..., force_flags=[reports.codes.FORCE])
-self.env_assist.assert_reports([
-    fixture.warn(reports.codes.SOME_ERROR, param="value"),
-])
-```
-
-### Testing with non-live CIB
-
-*When: testing a command that supports the `-f` flag (file-based CIB) in
-tier0*
-
-```python
-cib = modify_cib(read_test_resource("cib-empty.xml"), resources="...")
-self.config.env.set_cib_data(cib)
-self.config.runner.cib.load_content(cib, env={"CIB_file": "/fake/tmp/file"})
-self.config.env.push_cib(resources="...", load_key="runner.cib.load_content")
-```
-
-When testing `-f` mode for a command that gates corosync access on
-`env.is_cib_live`, using `set_cib_data()` means the command should skip
-corosync access — no `set_corosync_conf_data()` call is needed:
-
-```python
-def test_cib_from_file_skips_corosync_check(self):
-    cib_xml = "<cib>...</cib>"
-    self.config.env.set_cib_data(cib_xml)
-    self.config.runner.cib.load_content(
-        cib_xml, env={"CIB_file": "/fake/tmp/file"}
-    )
-    self.config.env.push_cib(
-        ..., load_key="runner.cib.load_content"
-    )
-    lib.my_command(self.env_assist.get_env(), ...)
-```
-
-See
-[architecture/library.md — Conditionally using non-CIB data sources](architecture/library.md#conditionally-using-non-cib-data-sources)
-for the library-side pattern.
-
 ### Testing live-only commands
 
 *When: testing a tier1 command that calls `ensure_live_env(env)` and rejects
