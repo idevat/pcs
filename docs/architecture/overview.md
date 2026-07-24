@@ -78,11 +78,11 @@ LibraryEnvironment, CIB access, reports, and communication. See
 | `pcs/daemon/app/`         | HTTP handlers                             |
 | `pcs/daemon/async_tasks/` | Async task processing                     |
 | `pcsd/`                   | Ruby legacy daemon code                   |
-| `pcs_test/`               | Test suite (see [testing.md](testing.md)) |
+| `pcs_test/`               | Test suite (see [testing.md](../testing.md)) |
 
 ## Build system
 
-The project uses GNU Autotools. See [CONTRIBUTING.md](../CONTRIBUTING.md) for
+The project uses GNU Autotools. See [CONTRIBUTING.md](../../CONTRIBUTING.md) for
 setup commands (`autogen.sh`, `./configure`, `make`) and configure flags.
 
 ### Workflow
@@ -141,7 +141,7 @@ typos_check → ruff_lint → ruff_isort_check → ruff_format_check → mypy
 ```
 
 Individual checks can be run separately (e.g. `make typos_check`, `make mypy`).
-See [CONTRIBUTING.md](../CONTRIBUTING.md) for the full list of make targets.
+See [CONTRIBUTING.md](../../CONTRIBUTING.md) for the full list of make targets.
 
 ### Tool configuration
 
